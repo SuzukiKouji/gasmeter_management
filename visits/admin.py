@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import VisitRecord, Photo
 
-# Register your models here.
+admin.site.register(VisitRecord)
+admin.site.register(Photo)

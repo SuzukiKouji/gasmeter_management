@@ -1,25 +1,44 @@
 from django.db import models
-from django.conf import settings
+from accounts.models import User
 from customers.models import Customer
+from django.utils import timezone
 
 class VisitRecord(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    visit_date = models.DateTimeField()
-    status = models.CharField(max_length=20)
-    inspection_due_date = models.DateField()
-    value_status = models.CharField(max_length=20)
-    current_model = models.CharField(max_length=50)
-    current_serial_number = models.CharField(max_length=50)
-    reason = models.CharField(max_length=100)
-    memo = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    STATUS_CHOICES = (
+        ('done', '完了'),
+        ('absent', '不在'),
+        ('retry', '再訪問'),
+    )
+
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.CASCADE,
+        related_name='visit_records'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='visit_records'
+    )
+
+    visit_date = models.DateTimeField('訪問日時')
+    status = models.CharField('訪問時ステータス', max_length=20, choices=STATUS_CHOICES)
+    memo = models.TextField('メモ', blank=True)
+
+    created_at = models.DateTimeField('作成日時', default=timezone.now)
+
+    def __str__(self):
+        return f'{self.customer.name} - {self.visit_date}'
 
 class Photo(models.Model):
     visit_record = models.ForeignKey(
         VisitRecord,
-        related_name='photos',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='photos'
     )
-    file_path = models.ImageField(upload_to='visit_photos/')
-    created_at = models.DateTimeField(auto_now_add=True)
+
+    file_path = models.ImageField('画像パス', upload_to='visit_photos/')
+    created_at = models.DateTimeField('作成日時', default=timezone.now)
+
+    def __str__(self):
+        return f'Photo {self.id}'
