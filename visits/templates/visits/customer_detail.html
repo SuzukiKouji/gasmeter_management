@@ -35,60 +35,54 @@
       <table class="table table-bordered align-middle">
         <tbody>
 
-          <!-- ★ 追加：お客さまID -->
+          <!-- お客さまID -->
           <tr>
             <th class="table-light" style="width: 30%;">お客さまID</th>
-            <td>99999999999</td>
+            <td>{{ customer.id }}</td>
           </tr>
 
+          <!-- お客さま名 -->
           <tr>
             <th class="table-light">お客さま名</th>
-            <td>山田 太郎</td>
+            <td>{{ customer.name }}</td>
           </tr>
+
+          <!-- 住所 -->
           <tr>
             <th class="table-light">住所</th>
-            <td>東京都葛飾区〇〇</td>
+            <td>{{ customer.address1 }} {{ customer.address2 }} {{ customer.address3 }}</td>
           </tr>
+
+          <!-- アパート名（address2 + address3 を流用） -->
           <tr>
             <th class="table-light">アパート名</th>
-            <td>サンプルハイツ101</td>
+            <td>{{ customer.address2 }} {{ customer.address3 }}</td>
           </tr>
+
+          <!-- 電話番号 -->
           <tr>
             <th class="table-light">電話番号</th>
-            <td>090-xxxx-xxxx</td>
+            <td>{{ customer.tel }}</td>
           </tr>
-          <tr>
-            <th class="table-light">検定年月</th>
-            <td>2023/05</td>
-          </tr>
-          <tr>
-            <th class="table-light">取付型号</th>
-            <td>NB4</td>
-          </tr>
-          <tr>
-            <th class="table-light">社番</th>
-            <td>123456789</td>
-          </tr>
+
+          <!-- メーター設置位置 -->
           <tr>
             <th class="table-light">メーター設置位置</th>
-            <td>イン台所外から不可</td>
+            <td>{{ customer.meter_location }}</td>
           </tr>
+
+          <!-- 用途コード -->
           <tr>
             <th class="table-light">用途コード</th>
-            <td>鉄筋アパート</td>
+            <td>{{ customer.usage_code }}</td>
           </tr>
+
+          <!-- 超過分類 -->
           <tr>
             <th class="table-light">超過分類</th>
-            <td>連絡つかず</td>
+            <td>{{ customer.excess_category }}</td>
           </tr>
-          <tr>
-            <th class="table-light">最終往訪日時</th>
-            <td>2024/12/10 14:30</td>
-          </tr>
-          <tr>
-            <th class="table-light">事由</th>
-            <td>不在のため面体できない。自転車あり物も沢山あり。電話番号現在使われていないもの。</td>
-          </tr>
+
         </tbody>
       </table>
 
@@ -101,7 +95,7 @@
     </div>
   </div>
 
-  <!-- 地図エリア -->
+  <!-- 地図エリア（必要なら後で動的化できる） -->
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <h2 class="h6 mb-3">位置情報</h2>

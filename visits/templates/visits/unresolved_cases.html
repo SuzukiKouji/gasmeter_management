@@ -67,6 +67,15 @@
 
       <h2 class="card-title h5 mb-3">未済件名リスト</h2>
 
+      <!-- CSVアップロードフォーム --> 
+      <form method="POST" enctype="multipart/form-data" class="mb-3"> 
+        {% csrf_token %} 
+        <div class="input-group"> 
+          <input type="file" name="csv_file" accept=".csv" class="form-control"> 
+          <button type="submit" class="btn btn-success">CSV取り込み</button> 
+        </div> 
+      </form>
+
       <!-- 検索ボックスを追加 -->
       <input type="text" id="filterInput" class="form-control mb-3" placeholder="検索">
 
@@ -87,15 +96,19 @@
   <tr>
     <td><input type="checkbox"></td>
     <td>{{ customer.name }}</td>
-    <td>{{ customer.address }}</td>
-    <td>{{ customer.phone }}</td>
+    <td>{{ customer.address1 }} {{ customer.address2 }} {{ customer.address3 }}</td>
+    <td>{{ customer.tel }}</td>
     <td>
       <a href="{% url 'customer_detail' customer.id %}" class="btn btn-primary btn-sm">詳細</a>
-      <a href="#" class="btn btn-danger btn-sm">削除</a>
+      <form action="{% url 'customer_delete' customer.id %}" method="POST" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm">削除</button> 
+      </form>
     </td>
   </tr>
   {% endfor %}
 </tbody>
+
 
 </table>
 

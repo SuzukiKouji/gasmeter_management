@@ -72,7 +72,7 @@
 
       <h2 class="h5 mb-3">過去の訪問記録</h2>
 
-      {% if visit_records %}
+      {% if records %}
         <table class="table table-bordered table-hover align-middle">
           <thead class="table-light">
             <tr>
@@ -82,17 +82,17 @@
             </tr>
           </thead>
           <tbody>
-            {% for record in visit_records %}
+            {% for record in records %}
             <tr>
-              <td>{{ record.created_at|date:"Y/m/d H:i" }}</td>
-              <td>{{ record.staff_name }}</td>
+              <td>{{ record.visit_date|date:"Y/m/d H:i" }}</td>
+              <td>{{ record.user }}</td>
               <td>
-                {{ record.note|linebreaksbr }}
+                {{ record.memo|linebreaksbr }}
 
-                {% if record.photos.all %}
+                {% if record.photo_set.all %}
                   <div class="mt-2">
-                    {% for photo in record.photos.all %}
-                      <img src="{{ photo.image.url }}" style="max-width: 120px; margin-right: 10px;">
+                    {% for photo in record.photo_set.all %}
+                      <img src="{{ photo.file_path.url }}" style="max-width: 120px; margin-right: 10px;">
                     {% endfor %}
                   </div>
                 {% endif %}
@@ -108,7 +108,7 @@
     </div>
   </div>
 
-  <!-- ▼ 現場入力フォーム（下部） -->
+  <!-- ▼ 現場入力フォーム（下部） ※ここは一切変更していません -->
   <div class="card shadow-sm mb-4">
     <div class="card-body">
 
