@@ -1,3 +1,102 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import VisitRecord, Photo
+from customers.models import Customer
+import csv
 
-# Create your views here.
+def unresolved_cases(request):
+
+    # ▼ CSVアップロード処理（DictReader 方式 + 重複スキップ）
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        csv_file = request.FILES["csv_file"]
+
+        # ▼ Excel の CSV（UTF-8 with BOM）を正しく読み込む
+        decoded_file = csv_file.read().decode("utf-8-sig").splitlines()
+        reader = csv.DictReader(decoded_file)
+
+        for row in reader:
+            name = row.get("name", "").strip()
+            address1 = row.get("address1", "").strip()
+
+            # ▼ 必須チェック（name または address1 が空ならスキップ）
+            if not name or not address1:
+                continue
+
+            # ▼ 重複チェック（name + address1 が一致したらスキップ）
+            exists = Customer.objects.filter(
+                name=name,
+                address1=address1
+            ).exists()
+
+            if exists:
+                continue  # ← 既存なら何もせずスキップ
+
+            # ▼ 新規のみ作成
+            Customer.objects.create(
+                name=name,
+                address1=address1,
+                address2=row.get("address2", "").strip(),
+                address3=row.get("address3", "").strip(),
+                tel=row.get("tel", "").strip(),
+                meter_location=row.get("meter_location", "").strip(),
+                usage_code=row.get("usage_code", "").strip(),
+                excess_category=row.get("excess_category", "").strip()
+            )
+
+        return redirect("unresolved_cases")
+
+    # ▼ 通常の一覧表示
+    customers = Customer.objects.all()  # ← 本当は未済だけに絞る
+    return render(request, 'visits/unresolved_cases.html', {
+        'customers': customers
+    })
+
+
+# ▼ 追加：顧客削除ビュー
+def customer_delete(request, customer_id):
+    customer = get_object_or_404(Customer, id=customer_id)
+    customer.delete()
+    return redirect("unresolved_cases")
+
+
+def customer_detail(request, customer_id):  # ← customer_id を受け取る
+    customer = get_object_or_404(Customer, id=customer_id)
+    return render(request, 'visits/customer_detail.html', {
+        'customer': customer
+    })
+
+
+def visit_record(request, customer_id):  # ← customer_id を受け取る
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    # ▼ 中段に表示する過去訪問記録
+    records = VisitRecord.objects.filter(customer=customer).order_by('-visit_date')
+
+    if request.method == 'POST':
+        # ▼ VisitRecord を保存
+        record = VisitRecord.objects.create(
+            customer=customer,
+            user=request.user,
+            visit_date=request.POST.get('visit_date'),
+            status=request.POST.get('status'),
+            inspection_due_date=request.POST.get('inspection_due_date'),
+            value_status=request.POST.get('value_status'),
+            current_model=request.POST.get('current_model'),
+            current_serial_number=request.POST.get('current_serial_number'),
+            reason=request.POST.get('reason'),
+            memo=request.POST.get('memo'),
+        )
+
+        # ▼ 写真を保存
+        if 'photo' in request.FILES:
+            Photo.objects.create(
+                visit_record=record,
+                file_path=request.FILES['photo']
+            )
+
+        # 保存後も同じ画面に戻る（中段に追加されて見える）
+        return redirect('visit_record', customer_id=customer.id)
+
+    return render(request, 'visits/visit_record.html', {
+        'customer': customer,
+        'records': records,
+    })
