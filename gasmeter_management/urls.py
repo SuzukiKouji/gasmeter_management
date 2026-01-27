@@ -19,5 +19,6 @@ from django.urls import path, include # ← include を追加
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include('accounts.urls')),
     path('visits/', include('visits.urls')), # ← これを追加
 ]
