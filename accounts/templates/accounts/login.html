@@ -11,7 +11,7 @@
       <h2 class="card-title h5 mb-3">ログイン</h2>
       <form action="" method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% bootstrap_form form %}
         <div class="mt-4 text-center">
           <button type="submit" class="btn btn-primary">ログイン</button>
         </div>

@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import VisitRecord, Photo
 from customers.models import Customer
+from django.db.models import OuterRef, Subquery
 import csv
 
 def unresolved_cases(request):
@@ -99,4 +100,21 @@ def visit_record(request, customer_id):  # ← customer_id を受け取る
     return render(request, 'visits/visit_record.html', {
         'customer': customer,
         'records': records,
+    })
+
+# ▼ 地図表示用
+def customer_map(request):
+    latest_visit = VisitRecord.objects.filter(
+        customer=OuterRef('pk')
+    ).order_by('-visit_date')
+
+    customers = Customer.objects.annotate(
+        latest_status=Subquery(latest_visit.values('status')[:1])
+    ).exclude(
+        latitude__isnull=True,
+        longitude__isnull=True
+    )
+
+    return render(request, 'visits/customer_map.html', {
+        'customers': customers
     })
