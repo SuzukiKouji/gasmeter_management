@@ -1,0 +1,34 @@
+{% extends "admin/index.html" %}
+{% load static %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+  {{ block.super }}
+
+  <h2>未済件数の月次推移</h2>
+  <canvas id="unresolvedChart" height="120"></canvas>
+
+  <script>
+    fetch("/admin/unresolved-monthly-data/")
+      .then(res => res.json())
+      .then(data => {
+        new Chart(
+          document.getElementById("unresolvedChart"),
+          {
+            type: 'line', // ← 'bar' にすると棒グラフ
+            data: {
+              labels: data.map(d => d.month),
+              datasets: [{
+                label: '未済件数',
+                data: data.map(d => d.count),
+              }]
+            }
+          }
+        );
+      });
+  </script>
+{% endblock %}

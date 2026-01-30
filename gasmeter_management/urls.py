@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include # ← include を追加
+from visits.views import unresolved_monthly_data
 
 urlpatterns = [
+    path("admin/unresolved-monthly-data/", unresolved_monthly_data),
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
     path('visits/', include('visits.urls')), # ← これを追加

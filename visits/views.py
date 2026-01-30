@@ -1,8 +1,12 @@
+import csv
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import VisitRecord, Photo
 from customers.models import Customer
 from django.db.models import OuterRef, Subquery
-import csv
+from django.http import JsonResponse
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+from django.contrib.admin.views.decorators import staff_member_required
+from .models import VisitRecord, Photo, VisitRecord
 
 def unresolved_cases(request):
 
@@ -118,3 +122,24 @@ def customer_map(request):
     return render(request, 'visits/customer_map.html', {
         'customers': customers
     })
+
+# ▼ 月次集計（1カ月単位）
+@staff_member_required
+def unresolved_monthly_data(request):
+    qs = (
+        VisitRecord().objects
+        .exclude(status='done')  # 完了以外＝未済
+        .annotate(month=TruncMonth('visit_date'))
+        .values('month')
+        .annotate(count=Count('id'))
+        .order_by('month')
+    )
+
+    data = [
+        {
+            "month": q["month"].strftime("%Y-%m"),
+            "count": q["count"],
+        }
+        for q in qs
+    ]
+    return JsonResponse(data, safe=False)
