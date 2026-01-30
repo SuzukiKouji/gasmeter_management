@@ -130,3 +130,6 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = 'unresolved_cases'
 LOGOUT_REDIRECT_URL = '/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

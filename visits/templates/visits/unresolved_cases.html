@@ -82,13 +82,14 @@
       <input type="text" id="filterInput" class="form-control mb-3" placeholder="検索">
 
       <!-- 案件一覧テーブル -->
-      <table class="table table-bordered table-hover align-middle">
+      <table id="customerTable" class="table table-bordered table-hover align-middle">
         <thead class="table-light">
           <tr>
             <th>選択</th>
             <th>お客さま名</th>
             <th>住所</th>
             <th>電話番号</th>
+            <th>ステータス</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -97,9 +98,16 @@
   {% for customer in customers %}
   <tr>
     <td><input type="checkbox"></td>
-    <td>{{ customer.name }}</td>
-    <td>{{ customer.address1 }} {{ customer.address2 }} {{ customer.address3 }}</td>
-    <td>{{ customer.tel }}</td>
+    <td data-search="name">{{ customer.name }}</td>
+    <td data-search="address">{{ customer.address1 }} {{ customer.address2 }} {{ customer.address3 }}</td>
+    <td data-search="tel">{{ customer.tel }}</td>
+    <td data-search="status">
+      {% if customer.latest_status %}
+        {{ customer.latest_status }}
+      {% else %}
+        未記録
+      {% endif %}  
+    </td>
     <td>
       <a href="{% url 'customer_detail' customer.id %}" class="btn btn-primary btn-sm">詳細</a>
       <form action="{% url 'customer_delete' customer.id %}" method="POST" style="display:inline;">
@@ -126,24 +134,25 @@
 
 <!-- ▼ フィルター機能のJavaScriptを追加 --> 
 <script>
-  document.getElementById("filterInput").addEventListener("keyup", function() {
-    const keyword = this.value.toLowerCase();
-    const rows = document.querySelectorAll("table tbody tr");
+document.getElementById("filterInput").addEventListener("keyup", function() {
+  const keyword = this.value.toLowerCase().trim();
+  const table = document.getElementById("customerTable");
+  const rows = table.querySelectorAll("tbody tr");
 
-    rows.forEach(row => {
-      const name = row.cells[1].textContent.toLowerCase();   // お客さま名
-      const address = row.cells[2].textContent.toLowerCase(); // 住所
-      const phone = row.cells[3].textContent.toLowerCase();   // 電話番号
+  rows.forEach(row => {
+    const searchableCells = row.querySelectorAll("[data-search]");
 
-      // どれかに keyword が含まれていれば表示
-      const match =
-        name.includes(keyword) ||
-        address.includes(keyword) ||
-        phone.includes(keyword);
-
-      row.style.display = match ? "" : "none";
+    let match = false;
+    searchableCells.forEach(cell => {
+      const text = cell.textContent.toLowerCase().trim();
+      if (text.includes(keyword)) {
+        match = true;
+      }
     });
+
+    row.style.display = match ? "" : "none";
   });
+});
 
   // === Leaflet === //
     // 初期表示（秋田市例）
@@ -168,34 +177,32 @@
       popupAnchor: [0, -32]
     });
 
-    {% for customer in customers %}
-      const icon =
-        {% if customer.latest_status == 'done' %}
-          redIcon
-        {% else %}
-          blueIcon
-        {% endif %};
+{% for customer in customers %}
+{
+  let icon =
+    {% if customer.latest_status_raw == 'done' %}
+      redIcon
+    {% else %}
+      blueIcon
+    {% endif %};
 
-      L.marker(
-        [{{ customer.latitude }}, {{ customer.longitude }}],
-        { icon: icon }
-      )
-      .addTo(map)
-      .bindPopup(`
-        <strong>{{ customer.name }}</strong><br>
-        {{ customer.address1 }} {{ customer.address2 }} {{ customer.address3 }}<br>
-        電話：{{ customer.tel|default:"-" }}<br>
-        状態：
-        {% if customer.latest_status == 'done' %}
-          落成
-        {% else %}
-          未済
-        {% endif %}<br><br>
-        <a href="{% url 'customer_detail' customer.id %}">
-          ▶ 詳細を見る
-        </a>
-      `);
-    {% endfor %}
+  L.marker(
+    [{{ customer.latitude }}, {{ customer.longitude }}],
+    { icon: icon }
+  )
+  .addTo(map)
+  .bindPopup(`
+    <strong>{{ customer.name }}</strong><br>
+    {{ customer.address1 }} {{ customer.address2 }} {{ customer.address3 }}<br>
+    電話：{{ customer.tel|default:"-" }}<br>
+    状態：{{ customer.latest_status }}<br><br>
+    <a href="{% url 'customer_detail' customer.id %}">
+      ▶ 詳細を見る
+    </a>
+  `);
+}
+{% endfor %}
+
 </script>
 
 </body>

@@ -47,6 +47,23 @@ def unresolved_cases(request):
 
     # ▼ 通常の一覧表示
     customers = Customer.objects.all()  # ← 本当は未済だけに絞る
+
+    # ▼ ステータスの日本語ラベル
+    STATUS_LABELS = {
+        'done': '完了',
+        'pending': '未完了',
+    }
+
+    # ▼ 各顧客に最新ステータスを付与
+    for customer in customers:
+        latest_record = customer.visit_records.order_by('-visit_date').first()
+
+        if latest_record:
+            customer.latest_status = STATUS_LABELS.get(latest_record.status, '未記録')
+        
+        else:
+            customer.latest_status = '未記録'
+
     return render(request, 'visits/unresolved_cases.html', {
         'customers': customers
     })
@@ -73,17 +90,13 @@ def visit_record(request, customer_id):  # ← customer_id を受け取る
     records = VisitRecord.objects.filter(customer=customer).order_by('-visit_date')
 
     if request.method == 'POST':
-        # ▼ VisitRecord を保存
+        print("POST内容:", request.POST)
+        # ▼ VisitRecord を保存（モデルに存在するフィールドだけ）
         record = VisitRecord.objects.create(
             customer=customer,
             user=request.user,
             visit_date=request.POST.get('visit_date'),
             status=request.POST.get('status'),
-            inspection_due_date=request.POST.get('inspection_due_date'),
-            value_status=request.POST.get('value_status'),
-            current_model=request.POST.get('current_model'),
-            current_serial_number=request.POST.get('current_serial_number'),
-            reason=request.POST.get('reason'),
             memo=request.POST.get('memo'),
         )
 
@@ -101,6 +114,7 @@ def visit_record(request, customer_id):  # ← customer_id を受け取る
         'customer': customer,
         'records': records,
     })
+
 
 # ▼ 地図表示用
 def customer_map(request):
